@@ -3,8 +3,6 @@ const request = require('request-promise-native')
 let clients = []
 let policies = []
 
-setup()
-
 /**
  * Helper method for looping through arrays with promises
  * @param  {Function} callback The callback is called in every loop
@@ -20,18 +18,26 @@ Array.prototype.asyncForEach = function (callback) {
 
 /**
  * Sets up the policies and clients in the corresponding arrays to create a fake database
- */
+//  */
 async function setup() {
-    clients = (await require('https://www.mocky.io/v2/5808862710000087232b75ac')).clients
-    policies = (await require('https://www.mocky.io/v2/580891a4100000e8242b75c5')).policies
+    console.log('Setting up clients and policies...')
+    clients = (await request.get({
+        url: 'https://www.mocky.io/v2/5808862710000087232b75ac',
+        rejectUnauthorized: false,
+    })).clients
+    policies = (await request.get({
+        url: 'https://www.mocky.io/v2/580891a4100000e8242b75c5',
+        rejectUnauthorized: false,
+    })).policies
+    console.log('Setup complete')
 }
 
-/**
- * To force the user to connect with a username before being able to make requests
- * @param  {object}   req  The request object
- * @param  {object}   res  The response object
- * @param  {Function} next The next middleware function to pass successful requests
- */
+// /**
+//  * To force the user to connect with a username before being able to make requests
+//  * @param  {object}   req  The request object
+//  * @param  {object}   res  The response object
+//  * @param  {Function} next The next middleware function to pass successful requests
+//  */
 function protectRoute(req, res, next) {
 	if (req.user) next()
 	else res.status(400).json({
@@ -54,6 +60,8 @@ async function login(req, res) {
     let foundUser = false
     let token = {}
 
+    console.log('Clients', clients)
+
     // Search the user in the list of clients
     await clients.asyncForEach(client => {
         if (client.email == user) {
@@ -63,7 +71,7 @@ async function login(req, res) {
     })
 
     if (!foundUser) {
-        return res.status(200).json({
+        return res.status(400).json({
             ok: false,
             msg: 'Could not find that user email',
         })
@@ -79,6 +87,8 @@ async function login(req, res) {
         })
     }
 }
+
+setup()
 
 module.exports = {
     protectRoute,
