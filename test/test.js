@@ -240,6 +240,28 @@ describe('Testing functions', () => {
             }
         })
     })
-    it('should get a user linked to a policy number successfully')
+    it('should get a user linked to a policy number successfully', () => {
+        return new Promise(async (resolve, reject) => {
+            const userEmail = 'darleneblankenship@quotezart.com' // This user has an admin role
+            const userName = 'Manning'
+            try {
+                // Login first
+                const resp = await server
+                    .get('/v1/user/login?user=' + userEmail)
+                    .expect(200)
+                // Access without query params
+                const response = await server
+                    .get('/v1/user/policy?id=' + userName)
+                    .expect(200)
+                response.body.ok.should.ok()
+                response.body.msg.should.equal('User found successfully')
+                response.body.user.should.be.type('object')
+                resolve()
+            } catch (e) {
+                console.log('err', e)
+                reject(e)
+            }
+        })
+    })
     it('should not get a user linked to a policy number that does not exist')
 })

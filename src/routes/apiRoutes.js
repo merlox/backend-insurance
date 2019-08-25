@@ -21,6 +21,9 @@ api.get('/user/login', async (req, res) => {
 api.get('/user', functions.protectRoute, async (req, res) => {
     await functions.getUser(req, res, clients)
 })
+api.get('/user/policy', functions.protectRoute, async (req, res) => {
+    await functions.getUserByPolicyId(req, res, clients, policies)
+})
 api.get('/policies', functions.protectRoute, async (req, res) => {
     await functions.getPolicies(req, res, clients, policies)
 })

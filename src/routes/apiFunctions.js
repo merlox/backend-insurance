@@ -141,9 +141,9 @@ async function getUser(req, res, clients) {
  * @param  {array}  policies The array of policies to find the user policies requested
  */
 async function getPolicies(req, res, clients, policies) {
-    if (Object.keys(req.query).length == 0 || !req.session.user || (!req.query.name && !req.query.policyId)) return res.status(400).json({
+    if (Object.keys(req.query).length == 0 || !req.session.user || !req.query.name) return res.status(400).json({
         ok: false,
-        msg: 'You need to pass a name or policyId query',
+        msg: 'You need to pass a name query',
     })
     if (req.session.user.role != 'admin') return res.status(400).json({
         ok: false,
@@ -186,10 +186,63 @@ async function getPolicies(req, res, clients, policies) {
     })
 }
 
+/**
+ * Returns a user object when passing a policyId query, the user linked to a policy number
+ * @param  {object} req      The request object
+ * @param  {object} res      The response object
+ * @param  {array}  clients  The array of clients to find the user id for searching policies
+ * @param  {array}  policies The array of policies to find the user policies requested
+ */
+async function getUserByPolicyId(req, res, clients, policies) {
+    if (Object.keys(req.query).length == 0 || !req.session.user || !req.query.id) return res.status(400).json({
+        ok: false,
+        msg: 'You need to pass an id query',
+    })
+    if (req.session.user.role != 'admin') return res.status(400).json({
+        ok: false,
+        msg: 'Only admin users can find users by policy ID',
+    })
+    let foundUser = false
+    let foundPolicy = false
+    let clientId = ''
+    let user = {}
+
+    await policies.asyncForEach(policy => {
+        if(policy.id == req.query.id) {
+            foundPolicy = true
+            clientId = policy.clientId
+        }
+    })
+
+    if(!foundPolicy) return res.status(400).json({
+        ok: false,
+        msg: 'The policy id requested does not exist',
+    })
+
+    await clients.asyncForEach(client => {
+        if(client.id == clientId) {
+            foundUser = true
+            user = client
+        }
+    })
+
+    if(!foundUser) return res.status(400).json({
+        ok: false,
+        msg: 'Could not find the user linked to the requested policy ID',
+    })
+
+    return res.status(200).json({
+        ok: true,
+        msg: 'User found successfully',
+        user,
+    })
+}
+
 module.exports = {
     protectRoute,
     login,
     setup,
     getUser,
     getPolicies,
+    getUserByPolicyId,
 }
