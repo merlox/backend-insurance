@@ -5,6 +5,9 @@ Users will be asked to login as a specific user using the email address saved in
 
 This API server uses a REST structure for retrieving data.
 
+## Docs
+Access the official API docs here: https://merlox.github.io/slate
+
 ## Usage
 Setup the project by cloning it, then installing the dependencies with `npm i` and running the server with `npm start`. You can then begin making request to the API endpoints.
 
