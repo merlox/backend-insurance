@@ -18,8 +18,8 @@ async function setup () {
 api.get('/user/login', async (req, res) => {
     await functions.login(req, res, clients)
 })
-api.post('/user', functions.protectRoute, async (req, res) => {
-
+api.get('/user', functions.protectRoute, async (req, res) => {
+    await functions.getUser(req, res, clients)
 })
 
 module.exports = api

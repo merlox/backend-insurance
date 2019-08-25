@@ -35,28 +35,31 @@ function setup() {
     })
 }
 
-// /**
-//  * To force the user to connect with a username before being able to make requests
-//  * @param  {object}   req  The request object
-//  * @param  {object}   res  The response object
-//  * @param  {Function} next The next middleware function to pass successful requests
-//  */
+/**
+ * To force the user to connect with a username before being able to make requests
+ * @param  {object}   req  The request object
+ * @param  {object}   res  The response object
+ * @param  {Function} next The next middleware function to pass successful requests
+ */
 function protectRoute(req, res, next) {
-	if (req.user) next()
+	if (req.session.user) next()
 	else res.status(400).json({
         ok: false,
-        msg: 'You must be logged to access this page, ',
+        msg: 'You must be logged to access this page',
     })
 }
 
 /**
  * To login as a specific user from the list of available users
  * Requires that you pass the username in the query like so: /login?user=example@gmail.com
+ * @param  {object} req     The request object
+ * @param  {object} res     The response object
+ * @param  {array}  clients The array of clients to access and find the user email
  */
 async function login(req, res, clients) {
-    if (!req.query || !req.query.user) return res.status(200).json({
+    if (!req.query || !req.query.user) return res.status(400).json({
         ok: false,
-        msg: 'You need to pass your user in the query parameters like this: /login?user=example@gmail.com'
+        msg: 'You need to pass your user in the query parameters like this: /user/login?user=example@gmail.com'
     })
 
     let user = req.query.user
@@ -79,7 +82,10 @@ async function login(req, res, clients) {
     } else {
         // Create the JWT token based on that new user
         token = jwt.sign({userId: user.id}, process.env.SALT)
-
+        req.session.user = {
+            ...user,
+            token,
+        }
         // If the user was added successful, return the user credentials
         return res.status(200).json({
             ok: true,
@@ -89,8 +95,23 @@ async function login(req, res, clients) {
     }
 }
 
+/**
+ * To get a specific user
+ * Requires that you pass the username in the query like so: /login?user=example@gmail.com
+ * @param  {object} req     The request object
+ * @param  {object} res     The response object
+ * @param  {array}  clients The array of clients to access and find the user email
+ */
+async function getUser(req, res, clients) {
+    if (!req.query || !req.query.user || !req.user) return res.status(400).json({
+        ok: false,
+        msg: 'You need to pass your user in the query parameters like this: /user?user=example@gmail.com',
+    })
+}
+
 module.exports = {
     protectRoute,
     login,
     setup,
+    getUser,
 }
