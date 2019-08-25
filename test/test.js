@@ -165,7 +165,6 @@ describe('Testing functions', () => {
                 response.body.policies.should.be.type('object')
                 resolve()
             } catch (e) {
-                console.log('err', e)
                 reject(e)
             }
         })
@@ -191,7 +190,6 @@ describe('Testing functions', () => {
                 response.body.msg.should.equal('Only admin users can find policies by user name')
                 resolve()
             } catch (e) {
-                console.log('err', e)
                 reject(e)
             }
         })
@@ -213,7 +211,6 @@ describe('Testing functions', () => {
                 response.body.msg.should.equal('The requested user could not be found')
                 resolve()
             } catch (e) {
-                console.log('err', e)
                 reject(e)
             }
         })
@@ -235,7 +232,6 @@ describe('Testing functions', () => {
                 response.body.msg.should.equal('Policies not found for that user')
                 resolve()
             } catch (e) {
-                console.log('err', e)
                 reject(e)
             }
         })
@@ -258,10 +254,29 @@ describe('Testing functions', () => {
                 response.body.user.should.be.type('object')
                 resolve()
             } catch (e) {
-                console.log('err', e)
                 reject(e)
             }
         })
     })
-    it('should not get a user linked to a policy number that does not exist')
+    it('should not get a user linked to a policy number that does not exist', () => {
+        return new Promise(async (resolve, reject) => {
+            const userEmail = 'darleneblankenship@quotezart.com' // This user has an admin role
+            const policyId = '123'
+            try {
+                // Login first
+                const resp = await server
+                    .get('/v1/user/login?user=' + userEmail)
+                    .expect(200)
+                // Access without query params
+                const response = await server
+                    .get('/v1/user/policy?id=' + policyId)
+                    .expect(400)
+                response.body.ok.should.not.ok()
+                response.body.msg.should.equal('The policy id requested does not exist')
+                resolve()
+            } catch (e) {
+                reject(e)
+            }
+        })
+    })
 })
