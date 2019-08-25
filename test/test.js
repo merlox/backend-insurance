@@ -243,7 +243,7 @@ describe('Testing functions', () => {
     it('should get a user linked to a policy number successfully', () => {
         return new Promise(async (resolve, reject) => {
             const userEmail = 'darleneblankenship@quotezart.com' // This user has an admin role
-            const userName = 'Manning'
+            const policyId = '4962c4b9-01cc-4cd3-a6c7-0e7b40b55b00'
             try {
                 // Login first
                 const resp = await server
@@ -251,7 +251,7 @@ describe('Testing functions', () => {
                     .expect(200)
                 // Access without query params
                 const response = await server
-                    .get('/v1/user/policy?id=' + userName)
+                    .get('/v1/user/policy?id=' + policyId)
                     .expect(200)
                 response.body.ok.should.ok()
                 response.body.msg.should.equal('User found successfully')
