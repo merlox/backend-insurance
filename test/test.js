@@ -7,7 +7,7 @@ describe('Testing functions', () => {
         return new Promise((resolve, reject) => {
             const userEmail = 'manningblankenship@quotezart.com'
             server
-                .get('/v1/login?user=' + userEmail)
+                .get('/v1/user/login?user=' + userEmail)
                 .expect(200)
                 .end((err, res) => {
                     if (err) return reject(err)
