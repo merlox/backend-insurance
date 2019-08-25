@@ -1,7 +1,5 @@
 const jwt = require('jsonwebtoken')
 const request = require('request-promise-native')
-let clients = []
-let policies = []
 
 /**
  * Helper method for looping through arrays with promises
@@ -19,17 +17,22 @@ Array.prototype.asyncForEach = function (callback) {
 /**
  * Sets up the policies and clients in the corresponding arrays to create a fake database
 //  */
-async function setup() {
+function setup() {
     console.log('Setting up clients and policies...')
-    clients = (await request.get({
-        url: 'https://www.mocky.io/v2/5808862710000087232b75ac',
-        rejectUnauthorized: false,
-    })).clients
-    policies = (await request.get({
-        url: 'https://www.mocky.io/v2/580891a4100000e8242b75c5',
-        rejectUnauthorized: false,
-    })).policies
-    console.log('Setup complete')
+    let clients = []
+    let policies = []
+    return new Promise(async resolve => {
+        clients = JSON.parse(await request.get({
+            url: 'https://www.mocky.io/v2/5808862710000087232b75ac',
+            rejectUnauthorized: false,
+        })).clients
+        policies = JSON.parse(await request.get({
+            url: 'https://www.mocky.io/v2/580891a4100000e8242b75c5',
+            rejectUnauthorized: false,
+        })).policies
+        console.log('Setup complete')
+        resolve({clients, policies})
+    })
 }
 
 // /**
@@ -50,7 +53,7 @@ function protectRoute(req, res, next) {
  * To login as a specific user from the list of available users
  * Requires that you pass the username in the query like so: /login?user=example@gmail.com
  */
-async function login(req, res) {
+async function login(req, res, clients) {
     if (!req.query || !req.query.user) return res.status(200).json({
         ok: false,
         msg: 'You need to pass your user in the query parameters like this: /login?user=example@gmail.com'
@@ -59,8 +62,6 @@ async function login(req, res) {
     let user = req.query.user
     let foundUser = false
     let token = {}
-
-    console.log('Clients', clients)
 
     // Search the user in the list of clients
     await clients.asyncForEach(client => {
@@ -87,8 +88,6 @@ async function login(req, res) {
         })
     }
 }
-
-setup()
 
 module.exports = {
     protectRoute,
