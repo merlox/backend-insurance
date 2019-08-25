@@ -57,7 +57,7 @@ function protectRoute(req, res, next) {
  * @param  {array}  clients The array of clients to access and find the user email
  */
 async function login(req, res, clients) {
-    if (!req.query || !req.query.user) return res.status(400).json({
+    if (Object.keys(req.query).length == 0 || !req.query.user) return res.status(400).json({
         ok: false,
         msg: 'You need to pass your user in the query parameters like this: /user/login?user=example@gmail.com'
     })
@@ -73,7 +73,6 @@ async function login(req, res, clients) {
             user = client
         }
     })
-
     if (!foundUser) {
         return res.status(400).json({
             ok: false,
@@ -103,9 +102,87 @@ async function login(req, res, clients) {
  * @param  {array}  clients The array of clients to access and find the user email
  */
 async function getUser(req, res, clients) {
-    if (!req.query || !req.query.user || !req.user) return res.status(400).json({
+    if (Object.keys(req.query).length == 0 || !req.session.user) return res.status(400).json({
         ok: false,
-        msg: 'You need to pass your user in the query parameters like this: /user?user=example@gmail.com',
+        msg: 'You need to pass an id or name query',
+    })
+    let isSearchById = req.query.id ? true : false
+    let user = {}
+    let foundUser = false
+
+    // Search the user in the list of clients
+    await clients.asyncForEach(client => {
+        if ((isSearchById && client.id == req.query.id) || (!isSearchById && client.name == req.query.name)) {
+            foundUser = true
+            user = client
+        }
+    })
+
+    if (!foundUser) {
+        return res.status(400).json({
+            ok: false,
+            msg: 'Could not find that user',
+        })
+    } else {
+        // If the user was added successful, return the user credentials
+        return res.status(200).json({
+            ok: true,
+            msg: 'User found successfully',
+            user,
+        })
+    }
+}
+
+/**
+ * Returns the list of policies when passing a query name
+ * @param  {object} req      The request object
+ * @param  {object} res      The response object
+ * @param  {array}  clients  The array of clients to find the user id for searching policies
+ * @param  {array}  policies The array of policies to find the user policies requested
+ */
+async function getPolicies(req, res, clients, policies) {
+    if (Object.keys(req.query).length == 0 || !req.session.user || (!req.query.name && !req.query.policyId)) return res.status(400).json({
+        ok: false,
+        msg: 'You need to pass a name or policyId query',
+    })
+    if (req.session.user.role != 'admin') return res.status(400).json({
+        ok: false,
+        msg: 'Only admin users can find policies by user name',
+    })
+    let policiesFound = []
+    let foundPolicies = false
+    let user = {}
+    let foundUser = false
+
+    // Search the user in the list of clients to have access to the user id for the policies
+    await clients.asyncForEach(client => {
+        if (client.name == req.query.name) {
+            foundUser = true
+            user = client
+        }
+    })
+
+    if(!foundUser) return res.status(400).json({
+        ok: false,
+        msg: 'The requested user could not be found',
+    })
+
+    await policies.asyncForEach(policy => {
+        if (policy.clientId == user.id) {
+            foundPolicies = true
+            policiesFound.push(policy)
+        }
+    })
+
+    if(!foundPolicies) return res.status(200).json({
+        ok: true,
+        msg: 'Policies not found for that user',
+    })
+
+    return res.status(200).json({
+        ok: true,
+        msg: 'Policies found successfully',
+        policies: policiesFound,
     })
 }
 
@@ -114,4 +191,5 @@ module.exports = {
     login,
     setup,
     getUser,
+    getPolicies,
 }

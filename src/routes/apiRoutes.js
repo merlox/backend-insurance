@@ -21,5 +21,8 @@ api.get('/user/login', async (req, res) => {
 api.get('/user', functions.protectRoute, async (req, res) => {
     await functions.getUser(req, res, clients)
 })
+api.get('/policies', functions.protectRoute, async (req, res) => {
+    await functions.getPolicies(req, res, clients, policies)
+})
 
 module.exports = api
