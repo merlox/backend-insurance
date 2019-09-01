@@ -27,7 +27,8 @@
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.3.1",
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.7"
+    "request-promise-native": "^1.0.7",
+    "yargs": "^14.0.0"
   },
   "devDependencies": {
     "mocha": "^6.2.0",
